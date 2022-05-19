@@ -3,6 +3,9 @@ use std::process::Command;
 use std::str;
 use tauri::command;
 
+use bollard::image::ListImagesOptions;
+use bollard::Docker;
+
 #[derive(Debug, Deserialize)]
 pub struct RequestBody {
   id: i32,
@@ -16,9 +19,26 @@ pub fn hello_world_test(event: String) -> Option<String> {
 }
 
 #[command]
-pub fn nana_test(event: String) -> Option<String> {
+pub async fn nana_test(event: String) -> Option<String> {
   let stdout = "hello_world(event)";
-  Some(stdout.to_string())
+  let docker = Docker::connect_with_local_defaults().expect("Failed to connect to docker");
+
+  let version = docker.version().await.unwrap();
+  let images = &docker
+    .list_images(Some(ListImagesOptions::<String> {
+      all: true,
+      ..Default::default()
+    }))
+    .await
+    .unwrap();
+
+  let mut x = String::new();
+
+  for image in images {
+    x = image.id.clone();
+  }
+
+  Some(x)
 }
 
 #[command]
