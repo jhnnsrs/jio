@@ -9,8 +9,8 @@ function App() {
 
   const handleHelloWorld = async () => {
     try {
-      const response = await invoke('hello_world_test', {
-        event: inputValue || 'nope',
+      const response = await invoke('nana_test', {
+        event: 'sdfsdf' || 'nope',
       })
       setMsgFromRust(`${response}`)
       console.log('response ', response)
@@ -25,10 +25,8 @@ function App() {
         <div className='component-wrapper'>
           <input
             value={inputValue}
-            placeholder="input for rust"
-            onChange={(e) =>
-              setInputValue(e.target.value)
-            }
+            placeholder='input for rust'
+            onChange={(e) => setInputValue(e.target.value)}
           />
           <button onClick={handleHelloWorld}>call rust</button>
           {!!msgFromRust && (

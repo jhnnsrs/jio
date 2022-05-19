@@ -1,6 +1,6 @@
 use serde::Deserialize;
+use std::process::Command;
 use std::str;
-use std::process::{Command};
 use tauri::command;
 
 #[derive(Debug, Deserialize)]
@@ -16,6 +16,12 @@ pub fn hello_world_test(event: String) -> Option<String> {
 }
 
 #[command]
+pub fn nana_test(event: String) -> Option<String> {
+  let stdout = "hello_world(event)";
+  Some(stdout.to_string())
+}
+
+#[command]
 pub fn ls_test(event: String) -> Option<String> {
   let stdout = ls(event);
   Some(stdout)
@@ -24,21 +30,18 @@ pub fn ls_test(event: String) -> Option<String> {
 pub fn hello_world(event: String) -> String {
   let output = if cfg!(target_os = "windows") {
     Command::new("cmd")
-      .args([
-        "/C",
-        format!("echo {}", event.to_string()).as_str(),
-      ])
+      .args(["/C", format!("echo {}", event.to_string()).as_str()])
       .output()
       .expect("failed to execute process")
   } else {
     Command::new("sh")
       .arg("-c")
-      .arg(format!("echo {}", event.to_string()).as_str(),)
+      .arg(format!("echo {}", event.to_string()).as_str())
       .output()
       .expect("failed to execute process")
   };
   let stdout = String::from_utf8(output.stdout).unwrap();
-  return stdout;  
+  return stdout;
 }
 
 pub fn ls(event: String) -> String {
@@ -46,7 +49,7 @@ pub fn ls(event: String) -> String {
     .output()
     .expect("failed to execute process");
 
-    print!("event: {}", event);
+  print!("event: {}", event);
   let stdout = String::from_utf8(output.stdout).unwrap();
   return stdout;
 }
