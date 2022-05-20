@@ -1,16 +1,19 @@
 import {
   ErrorMessage,
   Field,
+  FieldProps,
   FormikErrors,
   FormikHandlers,
   FormikValues,
+  useField,
 } from 'formik'
 import { FormikWizard, RenderProps } from 'formik-wizard-form'
 import React, { useEffect, useState } from 'react'
 import { useCommunication } from '../communication/communication-context'
 import * as Yup from 'yup'
-import { Link } from 'react-router-dom'
-
+import { Link, useNavigate } from 'react-router-dom'
+import { open } from '@tauri-apps/api/dialog'
+import { app } from '@tauri-apps/api'
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
   REMOTE = 'REMOTE',
@@ -74,6 +77,28 @@ export const AdminUserForm: React.FC<StepProps> = ({ errors }) => {
   )
 }
 
+export const AttentionSuperuser: React.FC<StepProps> = (props) => {
+  return (
+    <div className='text-center h-full my-7'>
+      <div className='font-light text-9xl'>🔥</div>
+      <div className='font-light text-3xl mt-8'>About the superuser!</div>
+      <div className='mt-3'>
+        This platform needs a superuser. And you will get to decide who that is!
+        A superuser is a <b>complete</b> administator of the platform, and has
+        full access to all the data. They will be be able to create new users,
+        and manage all the users. Also they will have complete access to every
+        users private data.
+        <br />
+        <div className='font-bold mt-5'>MAKE SURE THE PASSWORD IS SAFE</div>
+        <div className='mt-2'>Understood?</div>
+        <div>
+          <Field type='checkbox' name='attention' className='h-10' />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const AdverstisedHostsForm: React.FC<StepProps> = (props) => {
   return (
     <div className='text-center h-full my-7'>
@@ -89,6 +114,265 @@ export const AdverstisedHostsForm: React.FC<StepProps> = (props) => {
   )
 }
 
+const FileField = ({ ...props }: any) => {
+  const [field, meta, helpers] = useField(props)
+
+  const chooseFile = async () => {
+    const res = await open({
+      directory: true,
+      title: 'Choose an App directory',
+    })
+    helpers.setValue(res)
+  }
+
+  return (
+    <>
+      <label>
+        {field.value && <div className='font-light my-2'>{field.value}</div>}
+        <button
+          className='border shadow-xl shadow-gray-300/20 rounded border-gray-400 p-1'
+          onClick={() => chooseFile()}
+        >
+          Choose File{' '}
+        </button>
+      </label>
+      {meta.touched && meta.error ? (
+        <div className='error'>{meta.error}</div>
+      ) : null}
+    </>
+  )
+}
+
+export type Service = {
+  name: string
+  long: string
+  description: string
+  image: string
+}
+
+export const available_services: Service[] = [
+  {
+    name: 'core',
+    description: 'The core of the platform',
+    long: 'This includes authorization, authentificaiton, config management, and more',
+    image:
+      'https://cdn.sstatic.net/Img/teams/teams-illo-free-sidebar-promo.svg?v=47faa659a05e',
+  },
+  {
+    name: 'mikro',
+    description: 'The datalayer',
+    long: 'Enables you to store, organize and monitor microscopy data',
+    image:
+      'https://cdn.sstatic.net/Img/teams/teams-illo-free-sidebar-promo.svg?v=47faa659a05e',
+  },
+  {
+    name: 'arkitekt',
+    description: 'The workhorse',
+    long: 'Communicates with every app in your lab, and keeps track on what is happening in the lab',
+    image: 'http://localhost:8090/static/images/arkitekt.png',
+  },
+  {
+    name: 'fluss',
+    description: 'Orchestrate your workflows',
+    long: 'Allows you to design and run your workflows',
+    image: 'http://localhost:8090/static/images/arkitekt.png',
+  },
+  {
+    name: 'port',
+    description: 'Virtualize your nodes',
+    long: 'Enables docker based virtualization of your deep learning tasks',
+    image: 'http://localhost:8090/static/images/arkitekt.png',
+  },
+  {
+    name: 'hub',
+    description: 'A full blown juypterhub',
+    long: 'Access your computer resources from anywhere in nice juypter notebooks',
+    image: 'http://localhost:8090/static/images/arkitekt.png',
+  },
+  {
+    name: 'hub',
+    description: 'A full blown vscode in the cloud',
+    long: 'Access your computer resources and data from anywhere in nice vscode environemnts (uses third party)',
+    image: 'https://logowik.com/content/uploads/images/coder1889.jpg',
+  },
+]
+
+const ServiceSelectionField = ({ ...props }: any) => {
+  const [field, meta, helpers] = useField(props)
+
+  const toggleValue = async (item: string) => {
+    if (field.value) {
+      if (field.value.find((i: string) => i === item)) {
+        helpers.setValue(field.value.filter((i: string) => i !== item))
+      } else {
+        helpers.setValue([...field.value, item])
+      }
+    } else {
+      helpers.setValue([item])
+    }
+    console.log(field.value)
+  }
+
+  return (
+    <>
+      <div className='grid grid-cols-3 gap-2 mt-2'>
+        {available_services.map((app, i) => (
+          <div
+            className={`col-span-1 border rounded border-gray-400 cursor-pointer ${
+              field.value &&
+              field.value.find((i: string) => i === app.name) &&
+              'bg-green-300 border-green-600 shadow-xl shadow-green-300/40'
+            }`}
+            key={i}
+            onClick={() => toggleValue(app.name)}
+          >
+            <div className='flex flex-col items-center justify-center h-full p-6'>
+              <div className='font-bold text-center'>{app.name}</div>
+              <div className='font-light text-center'>{app.description}</div>
+              <div className='text-sm'>{app.long}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {meta.touched && meta.error ? (
+        <div className='error'>{meta.error}</div>
+      ) : null}
+    </>
+  )
+}
+
+export type App = {
+  name: string
+  long: string
+  description: string
+  image: string
+}
+
+export const available_apps: App[] = [
+  {
+    name: 'wasser',
+    description: 'Enables the website wasser to be using the platform',
+    long: 'Wasser is a website that allows you to manage your lab. Nobody but you sees your data (purely a client)',
+    image:
+      'https://cdn.sstatic.net/Img/teams/teams-illo-free-sidebar-promo.svg?v=47faa659a05e',
+  },
+  {
+    name: 'mikroJ',
+    description: 'Use Fiji with the platform',
+    long: 'Enables support for ImageJ and its makros',
+    image:
+      'https://cdn.sstatic.net/Img/teams/teams-illo-free-sidebar-promo.svg?v=47faa659a05e',
+  },
+  {
+    name: 'napari',
+    description: 'The workhorse',
+    long: 'Use the napari plugin to visualize your data',
+    image: 'http://localhost:8090/static/images/arkitekt.png',
+  },
+]
+
+const AppSelectionField = ({ ...props }: any) => {
+  const [field, meta, helpers] = useField(props)
+
+  const toggleValue = async (item: string) => {
+    if (field.value) {
+      if (field.value.find((i: string) => i === item)) {
+        helpers.setValue(field.value.filter((i: string) => i !== item))
+      } else {
+        helpers.setValue([...field.value, item])
+      }
+    } else {
+      helpers.setValue([item])
+    }
+    console.log(field.value)
+  }
+
+  return (
+    <>
+      <div className='grid grid-cols-3 gap-2 mt-2'>
+        {available_apps.map((app, i) => (
+          <div
+            className={`col-span-1 border rounded border-gray-400 cursor-pointer ${
+              field.value &&
+              field.value.find((i: string) => i === app.name) &&
+              'bg-green-300 border-green-600 shadow-xl shadow-green-300/40'
+            }`}
+            key={i}
+            onClick={() => toggleValue(app.name)}
+          >
+            <div className='flex flex-col items-center justify-center h-full p-6'>
+              <div className='font-bold text-center'>{app.name}</div>
+              <div className='font-light text-center'>{app.description}</div>
+              <div className='text-sm'>{app.long}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {meta.touched && meta.error ? (
+        <div className='error'>{meta.error}</div>
+      ) : null}
+    </>
+  )
+}
+
+export const AppStorage: React.FC<StepProps> = (props) => {
+  return (
+    <div className='text-center h-full my-7'>
+      <div className='font-light text-3xl mt-4'>
+        Lets see if we can find a folder to store everything..
+      </div>
+      <div>
+        <FileField name='appPath' />
+      </div>
+      <div className='text-center mt-6'>
+        This folder will be used to store all of the data and the configuration
+        of the platform. So make sure its big.. like really big
+      </div>
+    </div>
+  )
+}
+
+export const ServiceSelection: React.FC<StepProps> = (props) => {
+  return (
+    <div className='text-center h-full my-7'>
+      <div className='font-light text-3xl mt-4'>
+        Which services do you want to install
+      </div>
+      <div className='text-center mt-6'>
+        Arkitekt is build around services that provide specific functionality.
+        If you want the fully working example you will need to install every
+        app.
+      </div>
+      <div className=''>
+        <ServiceSelectionField name='services' />
+      </div>
+    </div>
+  )
+}
+
+export const AppSelection: React.FC<StepProps> = (props) => {
+  return (
+    <div className='text-center h-full my-7'>
+      <div className='font-light text-3xl mt-4'>
+        Which apps should be automatically configured to be able connect to the
+        platform
+      </div>
+      <div className='text-center mt-6'>
+        Arkitekt is build around apps that provide specific functionality. But
+        because we care about data safety, apps need to fully authenticate
+        themselves with the platform and negotiate access rights. You can
+        already enable some of the standard apps that Arkitekt provides here, so
+        that there is no need for configuration.
+      </div>
+      <div className=''>
+        <AppSelectionField name='apps' />
+      </div>
+    </div>
+  )
+}
+
 export const Greeting: React.FC<StepProps> = (props) => {
   return (
     <div className='text-center h-full my-7'>
@@ -99,6 +383,19 @@ export const Greeting: React.FC<StepProps> = (props) => {
       <div className=''>
         We will ask you to set up a few steps and then we can if everything is
         settled
+      </div>
+    </div>
+  )
+}
+
+export const Done: React.FC<StepProps> = (props) => {
+  return (
+    <div className='text-center h-full my-7'>
+      <div className='font-light text-9xl'> Almost Done!</div>
+      <div className='font-light text-3xl mt-4'>
+        Please make sure your computer is connected to the internet and all
+        unnecessary apps are closed. If you click next the app will be
+        installed. Get a coffee ready... ☕
       </div>
     </div>
   )
@@ -141,6 +438,7 @@ export const CheckDocker: React.FC<StepProps> = (props) => {
 
 export const Setup: React.FC<{}> = (props) => {
   const { call } = useCommunication()
+  const navigate = useNavigate()
 
   const [finalValues, setFinalValues] = React.useState({})
 
@@ -153,6 +451,9 @@ export const Setup: React.FC<{}> = (props) => {
         password: '',
         email: '',
         phone: '',
+        attention: false,
+        apps: ['wasser'],
+        services: ['core', 'mikro', 'arkitekt'],
         addressLine1: '',
         addressLine2: '',
         employerName: '',
@@ -161,9 +462,12 @@ export const Setup: React.FC<{}> = (props) => {
         city: '',
       }}
       onSubmit={(values: any) => {
+        console.log('oisnosinosinsoinsoin')
         setFinalValues(values)
+        navigate('/dashboard')
       }}
       validateOnNext
+      validateOnBlur
       activeStepIndex={0}
       steps={[
         {
@@ -171,6 +475,35 @@ export const Setup: React.FC<{}> = (props) => {
         },
         {
           component: CheckDocker,
+        },
+
+        {
+          component: ServiceSelection,
+          validationSchema: Yup.object().shape({
+            services: Yup.array(Yup.string()).required(
+              'Desired Modules Required'
+            ),
+          }),
+        },
+        {
+          component: AppStorage,
+          validationSchema: Yup.object().shape({
+            appPath: Yup.string().required('App path is required'),
+          }),
+        },
+        {
+          component: AppSelection,
+          validationSchema: Yup.object().shape({
+            apps: Yup.array(Yup.string()).required('Desired Modules Required'),
+          }),
+        },
+        {
+          component: AttentionSuperuser,
+          validationSchema: Yup.object().shape({
+            attention: Yup.bool()
+              .isTrue()
+              .required('You need to understand this'),
+          }),
         },
         {
           component: AdminUserForm,
@@ -181,10 +514,7 @@ export const Setup: React.FC<{}> = (props) => {
           }),
         },
         {
-          component: AdverstisedHostsForm,
-          validationSchema: Yup.object().shape({
-            host: Yup.string().required('Email is required'),
-          }),
+          component: Done,
         },
       ]}
     >
@@ -217,7 +547,7 @@ export const Setup: React.FC<{}> = (props) => {
                 className='border rounded shadow-xl shadow-green-400/20 border-green-500 p-1 disabled:invisible'
                 onClick={handleNext}
               >
-                {currentStepIndex === 2 ? 'Finish' : 'Next'}
+                {'Next'}
               </button>
             </div>
           </div>
