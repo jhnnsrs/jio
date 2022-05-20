@@ -37,6 +37,7 @@ export const checkHealth = async (
   port: number
 ): Promise<HealthReturn> => {
   try {
+    console.log(`Checking ${name} on ${host}:${port}`)
     const res = await fetch(`http://${host}:${port}/ht/?format=json`, {
       headers: {
         'Content-Type': 'application/json',
@@ -44,23 +45,25 @@ export const checkHealth = async (
       method: 'GET',
     })
 
+    console.log(res)
+
     if (res.ok)
       return {
         name,
-        ok: JSON.parse(res.data as string) as HealthyJSON,
+        ok: res.data as HealthyJSON,
         reachable: true,
       }
     else {
       return {
         name,
-        error: JSON.parse(res.data as string) as DeadJSON,
+        error: res.data as DeadJSON,
         reachable: false,
       }
     }
   } catch (e) {
     return {
       name,
-      error: { Connection: (e as any).message },
+      error: { Connection: e as any },
       reachable: false,
     }
   }
@@ -75,9 +78,10 @@ const HealthProvider: React.FC<IHealthProviderProps> = ({
   let host = 'localhost'
 
   const updateServices = () => {
-    checkHealth('arkitekt', host, 8090).then((val) =>
+    checkHealth('arkitekt', host, 8090).then((val) => {
+      console.log('arkitekt', val)
       setService((value) => ({ ...value, arkitekt: val }))
-    )
+    })
     checkHealth('herre', host, 8000).then((val) =>
       setService((value) => ({ ...value, herre: val }))
     )
