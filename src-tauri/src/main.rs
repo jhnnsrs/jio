@@ -11,8 +11,8 @@ mod cmd;
 
 use serde::{Deserialize, Serialize};
 use tauri::{
-  api::dialog::ask, http::ResponseBuilder, RunEvent, WindowEvent, GlobalShortcutManager, Manager,
-  CustomMenuItem, Menu, MenuItem, Submenu
+  api::dialog::ask, http::ResponseBuilder, CustomMenuItem, GlobalShortcutManager, Manager, Menu,
+  MenuItem, RunEvent, Submenu, WindowEvent,
 };
 
 #[derive(Serialize)]
@@ -38,7 +38,6 @@ async fn menu_toggle(window: tauri::Window) {
 }
 
 fn main() {
-
   #[allow(unused_mut)]
   let mut app = tauri::Builder::default()
     .on_page_load(|window, _| {
@@ -78,11 +77,13 @@ fn main() {
     })
     .invoke_handler(tauri::generate_handler![
       cmd::hello_world_test,
+      cmd::nana_test,
+      cmd::test_docker,
       cmd::ls_test,
       menu_toggle,
     ])
     .build(tauri::generate_context!())
-    .expect("error while building tauri application");
+    .expect("error while building tauri sss");
 
   #[cfg(target_os = "macos")]
   app.set_activation_policy(tauri::ActivationPolicy::Regular);
@@ -104,7 +105,7 @@ fn main() {
     // Triggered when a window is trying to close
     RunEvent::WindowEvent {
       label,
-      event: WindowEvent::CloseRequested { api, ..},
+      event: WindowEvent::CloseRequested { api, .. },
       ..
     } => {
       let app_handle = app_handle.clone();
