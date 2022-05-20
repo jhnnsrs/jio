@@ -78,6 +78,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       cmd::hello_world_test,
       cmd::nana_test,
+      cmd::test_docker,
       cmd::ls_test,
       menu_toggle,
     ])

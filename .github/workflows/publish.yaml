@@ -1,8 +1,8 @@
-name: 'publish'
+name: 'Publish Everything'
+
 on:
   push:
-    branches:
-      - release
+    branches: [master]
 
 jobs:
   publish-tauri:
