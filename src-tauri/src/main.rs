@@ -80,6 +80,7 @@ fn main() {
       cmd::nana_test,
       cmd::test_docker,
       cmd::ls_test,
+      cmd::advertise_endpoint,
       menu_toggle,
     ])
     .build(tauri::generate_context!())
