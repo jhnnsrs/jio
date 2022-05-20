@@ -28,6 +28,7 @@ export const Dashboard: React.FC<{}> = (props) => {
 
   return (
     <div className='bg-green-200 h-full w-full'>
+      Hallo darkness my old friend!!! React is working bitches
       {!!dockerStatus && (
         <p style={{ position: 'absolute' }}>
           DockerVersion: {dockerStatus.version}
