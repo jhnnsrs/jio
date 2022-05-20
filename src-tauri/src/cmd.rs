@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::net::UdpSocket;
 use std::process::Command;
 use std::str;
+use std::time::Duration;
 use tauri::command;
 
 use bollard::image::ListImagesOptions;
@@ -32,6 +34,16 @@ pub struct DockerInfo {
   memory: String,
   version: String,
 }
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Endpoint {
+  #[serde(default)]
+  docker_addr: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AdvertiseOk {
+  ok: String,
+}
 
 #[command]
 pub fn hello_world_test(event: String) -> Option<String> {
@@ -60,6 +72,28 @@ pub async fn test_docker(event: String) -> Option<String> {
   let info = DockerInfo {
     memory: system_info.mem_total.unwrap().to_string(),
     version: version.api_version.unwrap(),
+  };
+
+  Some(serde_json::to_string(&info).unwrap())
+}
+
+#[command]
+pub async fn advertise_endpoint(event: String) -> Option<String> {
+  let x: Endpoint = serde_json::from_str(event.as_str()).unwrap();
+
+  let socket: UdpSocket = UdpSocket::bind("0.0.0.0:0").unwrap();
+  socket.set_read_timeout(Some(Duration::new(5, 0))).unwrap();
+  socket.set_broadcast(true).unwrap();
+  println!("Connected on port {}", x.docker_addr);
+  println!("Broadcast: {:?}", socket.broadcast());
+  println!("Timeout: {:?}", socket.read_timeout());
+
+  let call: Vec<u8> = "packer.get_buf()?".as_bytes().to_vec();
+  println!("Sending call, {} bytes", call.len());
+  socket.send_to(&call, "255.255.255.255:45678").unwrap();
+
+  let info = AdvertiseOk {
+    ok: "ok".to_string(),
   };
 
   Some(serde_json::to_string(&info).unwrap())

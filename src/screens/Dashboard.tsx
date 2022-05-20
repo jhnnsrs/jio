@@ -26,6 +26,20 @@ export const Dashboard: React.FC<{}> = (props) => {
     }).then((res) => setDockerStatus(res))
   }, [])
 
+  const advertiseEndpoint = () => {
+    call('advertise_endpoint', {
+      docker_addr: 'ssss',
+    }).then((res) => console.log(res))
+  }
+
+  useEffect(() => {
+    advertiseEndpoint()
+    const interval = setInterval(() => {
+      advertiseEndpoint()
+    }, 2000 || 3000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className='bg-green-200 h-full w-full'>
       Hallo darkness my old friend!!! React is working bitches
