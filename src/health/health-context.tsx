@@ -1,5 +1,14 @@
 import React, { useContext } from 'react'
-import { HealthReturn } from './health-provider'
+
+export type HealthyJSON = { [element: string]: string }
+export type DeadJSON = { Connection: string; [element: string]: string }
+
+export type HealthReturn = {
+  name: string
+  reachable?: boolean
+  ok?: HealthyJSON
+  error?: DeadJSON
+}
 
 export type ContainerState = {
   state?: string

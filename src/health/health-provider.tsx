@@ -1,10 +1,10 @@
-import { unlink } from 'fs'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
-  ArkitektState,
   ContainerState,
+  DeadJSON,
   HealthContext,
-  MeshState,
+  HealthReturn,
+  HealthyJSON,
   ServiceState,
 } from './health-context'
 
@@ -19,15 +19,6 @@ export type RPContainer = {
   Names: string[]
   Image: string
   Labels: { [key: string]: string }
-}
-
-export type HealthyJSON = { [element: string]: string }
-export type DeadJSON = { Connection: string; [element: string]: string }
-export type HealthReturn = {
-  name: string
-  reachable?: boolean
-  ok?: HealthyJSON
-  error?: DeadJSON
 }
 
 export const containerToState = (
