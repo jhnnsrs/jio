@@ -1,14 +1,20 @@
 import React, { useState } from 'react'
+import { Route, Routes } from 'react-router-dom'
 import { CommunicationProvider } from './communication/communication-provider'
 import { HealthProvider } from './health/health-provider'
 import { Dashboard } from './screens/Dashboard'
+import { Home } from './screens/Home'
 import { Setup } from './screens/Setup'
 
 function App() {
   return (
     <CommunicationProvider>
       <HealthProvider>
-        <Setup />
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/setup' element={<Setup />} />
+          <Route path='/dashboard' element={<Dashboard />} />
+        </Routes>
       </HealthProvider>
     </CommunicationProvider>
   )

@@ -3,6 +3,7 @@ import { FormikWizard, RenderProps } from 'formik-wizard-form'
 import React, { useEffect, useState } from 'react'
 import { useCommunication } from '../communication/communication-context'
 import * as Yup from 'yup'
+import { Link } from 'react-router-dom'
 
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
@@ -121,6 +122,9 @@ export const Setup: React.FC<{}> = (props) => {
           )
         }}
       </FormikWizard>
+      <nav>
+        <Link to='/'>Home</Link>
+      </nav>
     </div>
   )
 }

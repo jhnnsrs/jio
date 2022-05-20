@@ -73,7 +73,7 @@ export type ServiceState = {
 }
 
 export interface HealthContextType {
-  service: ServiceState
+  service?: ServiceState
 }
 
 export const HealthContext = React.createContext<HealthContextType>({

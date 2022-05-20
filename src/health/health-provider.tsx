@@ -7,6 +7,7 @@ import {
   HealthyJSON,
   ServiceState,
 } from './health-context'
+import { fetch } from '@tauri-apps/api/http'
 
 export type IHealthProviderProps = {
   checkInterval?: number
@@ -40,12 +41,21 @@ export const checkHealth = async (
       headers: {
         'Content-Type': 'application/json',
       },
+      method: 'GET',
     })
 
     if (res.ok)
-      return { name, ok: (await res.json()) as HealthyJSON, reachable: true }
+      return {
+        name,
+        ok: JSON.parse(res.data as string) as HealthyJSON,
+        reachable: true,
+      }
     else {
-      return { name, error: (await res.json()) as DeadJSON, reachable: false }
+      return {
+        name,
+        error: JSON.parse(res.data as string) as DeadJSON,
+        reachable: false,
+      }
     }
   } catch (e) {
     return {

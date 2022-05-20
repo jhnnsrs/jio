@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useCommunication } from '../communication/communication-context'
 
 export enum DockerConnectionStrategy {
@@ -19,6 +20,7 @@ export type DockerStatus = {
 export const Dashboard: React.FC<{}> = (props) => {
   const { call } = useCommunication()
   const [dockerStatus, setDockerStatus] = useState<DockerStatus | null>(null)
+  const [advertise, setAdvertise] = useState<boolean>(false)
 
   useEffect(() => {
     call<DockerConfig, DockerStatus>('test_docker', {
@@ -33,23 +35,32 @@ export const Dashboard: React.FC<{}> = (props) => {
   }
 
   useEffect(() => {
-    advertiseEndpoint()
-    const interval = setInterval(() => {
+    if (advertise) {
       advertiseEndpoint()
-    }, 2000 || 3000)
-    return () => clearInterval(interval)
-  }, [])
+      const interval = setInterval(() => {
+        advertiseEndpoint()
+      }, 2000 || 3000)
+      return () => clearInterval(interval)
+    }
+    return () => {}
+  }, [advertise])
 
   return (
     <div className='bg-green-200 h-full w-full'>
       Hallo darkness my old friend!!! React is working bitches
       {!!dockerStatus && (
-        <p style={{ position: 'absolute' }}>
+        <p>
           DockerVersion: {dockerStatus.version}
           <br />
           Memory Usage: {dockerStatus.memory}
         </p>
       )}
+      <button onClick={() => setAdvertise(!advertise)}>
+        {advertise ? 'Stop' : 'Start'}
+      </button>
+      <nav>
+        <Link to='/'>Home</Link>
+      </nav>
     </div>
   )
 }
