@@ -37,15 +37,13 @@ export const checkHealth = async (
   port: number
 ): Promise<HealthReturn> => {
   try {
-    console.log(`Checking ${name} on ${host}:${port}`)
+    //console.log(`Checking ${name} on ${host}:${port}`)
     const res = await fetch(`http://${host}:${port}/ht/?format=json`, {
       headers: {
         'Content-Type': 'application/json',
       },
       method: 'GET',
     })
-
-    console.log(res)
 
     if (res.ok)
       return {
@@ -79,7 +77,6 @@ const HealthProvider: React.FC<IHealthProviderProps> = ({
 
   const updateServices = () => {
     checkHealth('arkitekt', host, 8090).then((val) => {
-      console.log('arkitekt', val)
       setService((value) => ({ ...value, arkitekt: val }))
     })
     checkHealth('herre', host, 8000).then((val) =>

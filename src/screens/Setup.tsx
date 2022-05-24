@@ -13,7 +13,11 @@ import { useCommunication } from '../communication/communication-context'
 import * as Yup from 'yup'
 import { Link, useNavigate } from 'react-router-dom'
 import { open } from '@tauri-apps/api/dialog'
-import { app } from '@tauri-apps/api'
+import { compile } from 'handlebars'
+import { stringify } from 'yaml'
+import { forage } from '@tauri-apps/tauri-forage'
+import { useStorage } from '../storage/storage-context'
+
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
   REMOTE = 'REMOTE',
@@ -34,6 +38,13 @@ type StepProps = {
   values: FormikValues
   handleChange: FormikHandlers['handleChange']
 }
+
+const stemplate = compile(`
+johannes:
+  user_password: {{password}}
+  apps: {{#each apps}}-{{this}}{{/each}}
+
+`)
 
 export const AdminUserForm: React.FC<StepProps> = ({ errors }) => {
   return (
@@ -114,7 +125,7 @@ export const AdverstisedHostsForm: React.FC<StepProps> = (props) => {
   )
 }
 
-const FileField = ({ ...props }: any) => {
+export const FileField = ({ ...props }: any) => {
   const [field, meta, helpers] = useField(props)
 
   const chooseFile = async () => {
@@ -438,9 +449,30 @@ export const CheckDocker: React.FC<StepProps> = (props) => {
 
 export const Setup: React.FC<{}> = (props) => {
   const { call } = useCommunication()
+  const { installApp } = useStorage()
   const navigate = useNavigate()
 
-  const [finalValues, setFinalValues] = React.useState({})
+  const handleSubmit = async (values: any) => {
+    if (values.appPath) {
+      let res = await call<any, { ok: string; error: string }>(
+        'directory_init_cmd',
+        {
+          dirpath: values.appPath,
+          yaml: stringify(values),
+        }
+      )
+
+      let app = {
+        name: 'arkitekt',
+        dirpath: values.appPath,
+      }
+
+      if (res.ok) {
+        installApp(app)
+        navigate('/dashboard')
+      }
+    }
+  }
 
   return (
     <FormikWizard
@@ -459,13 +491,9 @@ export const Setup: React.FC<{}> = (props) => {
         employerName: '',
         designation: '',
         totalExperience: '',
-        city: '',
+        appPath: '',
       }}
-      onSubmit={(values: any) => {
-        console.log('oisnosinosinsoinsoin')
-        setFinalValues(values)
-        navigate('/dashboard')
-      }}
+      onSubmit={handleSubmit}
       validateOnNext
       validateOnBlur
       activeStepIndex={0}

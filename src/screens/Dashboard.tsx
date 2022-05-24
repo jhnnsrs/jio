@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useHealth } from '../health/health-context'
 import { ResponsiveGrid } from '../layout/ResponsiveGrid'
 import { useCommunication } from '../communication/communication-context'
+import { Form, Formik } from 'formik'
+import { FileField } from './Setup'
+import { stringify } from 'yaml'
+import { forage } from '@tauri-apps/tauri-forage'
 
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
@@ -40,11 +44,27 @@ export const ServiceHealth = (props: { service: any }) => {
   )
 }
 
+export type InitDirectoryValues = {
+  dirpath: string
+}
+
 export const Dashboard: React.FC<{}> = (props) => {
+  const { id } = useParams<{ id: string }>()
   const { call } = useCommunication()
   const [dockerStatus, setDockerStatus] = useState<DockerStatus | null>(null)
   const [advertise, setAdvertise] = useState<boolean>(false)
   const { service } = useHealth()
+
+  const [availableApps, setAvailableApps] = useState<string[]>([])
+
+  useEffect(() => {
+    forage
+      .getItem({ key: 'apps' })()
+      .then((value) => {
+        console.log(value)
+        setAvailableApps(JSON.parse(value) || [])
+      })
+  }, [])
 
   useEffect(() => {
     call<DockerConfig, DockerStatus>('test_docker', {
@@ -54,6 +74,12 @@ export const Dashboard: React.FC<{}> = (props) => {
 
   const advertiseEndpoint = () => {
     call('advertise_endpoint', {
+      docker_addr: 'ssss',
+    }).then((res) => console.log(res))
+  }
+
+  const test_docker_version = () => {
+    call('docker_version_cmd', {
       docker_addr: 'ssss',
     }).then((res) => console.log(res))
   }
@@ -72,8 +98,10 @@ export const Dashboard: React.FC<{}> = (props) => {
   return (
     <div className='h-full w-full p-3'>
       <div className='text-xl'>
-        <Link to='/'>{'< Status'}</Link>
+        <Link to='/'>{'< Home'}</Link>
       </div>
+      This feels {id} home{' '}
+      <button onClick={() => test_docker_version()}>fffff </button>
       <div className='font-light mt-2'>Docker Status</div>
       {!!dockerStatus && (
         <div className='font-light text-sm mt-2'>
