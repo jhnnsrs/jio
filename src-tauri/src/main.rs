@@ -81,6 +81,8 @@ fn main() {
       cmd::test_docker,
       cmd::docker_version_cmd,
       cmd::directory_init_cmd,
+      cmd::directory_up_cmd,
+      cmd::directory_stop_cmd,
       cmd::advertise_endpoint,
       menu_toggle,
     ])
