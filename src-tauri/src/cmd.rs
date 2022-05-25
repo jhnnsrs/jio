@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fs::canonicalize;
 use std::net::UdpSocket;
 use std::process::Command;
 use std::str;
@@ -43,6 +44,40 @@ pub struct Endpoint {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AdvertiseOk {
   ok: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct InitializeRequest {
+  dirpath: String,
+  yaml: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct InitializeAnswer {
+  ok: Option<String>,
+  error: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpRequest {
+  dirpath: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpAnswer {
+  ok: Option<String>,
+  error: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StopRequest {
+  dirpath: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StopAnswer {
+  ok: Option<String>,
+  error: Option<String>,
 }
 
 #[command]
@@ -122,9 +157,31 @@ pub async fn nana_test(event: String) -> Option<String> {
 }
 
 #[command]
-pub fn ls_test(event: String) -> Option<String> {
-  let stdout = ls(event);
-  Some(stdout)
+pub async fn docker_version_cmd(event: String) -> Option<String> {
+  let stdout = docker_version();
+  let info = AdvertiseOk { ok: stdout };
+  Some(serde_json::to_string(&info).unwrap())
+}
+
+#[command]
+pub async fn directory_init_cmd(event: String) -> Option<String> {
+  let x: InitializeRequest = serde_json::from_str(event.as_str()).unwrap();
+  let stdout = directory_init(x);
+  Some(serde_json::to_string(&stdout).unwrap())
+}
+
+#[command]
+pub async fn directory_up_cmd(event: String) -> Option<String> {
+  let x: UpRequest = serde_json::from_str(event.as_str()).unwrap();
+  let stdout = directory_up(x);
+  Some(serde_json::to_string(&stdout).unwrap())
+}
+
+#[command]
+pub async fn directory_stop_cmd(event: String) -> Option<String> {
+  let x: StopRequest = serde_json::from_str(event.as_str()).unwrap();
+  let stdout = directory_stop(x);
+  Some(serde_json::to_string(&stdout).unwrap())
 }
 
 pub fn hello_world(event: String) -> String {
@@ -144,12 +201,104 @@ pub fn hello_world(event: String) -> String {
   return stdout;
 }
 
-pub fn ls(event: String) -> String {
-  let output = Command::new("ls")
+pub fn docker_version() -> String {
+  let output = Command::new("docker")
+    .arg("version")
     .output()
-    .expect("failed to execute process");
+    .expect("failed to execute s");
 
-  print!("event: {}", event);
   let stdout = String::from_utf8(output.stdout).unwrap();
   return stdout;
+}
+
+pub fn directory_init(x: InitializeRequest) -> InitializeAnswer {
+  println!("Did that here Here");
+
+  let dir = canonicalize(x.dirpath.clone()).unwrap();
+  let config_path = dir.join("config.yaml");
+  std::fs::write(config_path, x.yaml).unwrap();
+  let dir_str: String = format!("{}:/init", dir.to_str().unwrap().to_string());
+  println!("Mounting on {}", dir_str);
+  let output = if cfg!(target_os = "windows") {
+    Command::new("docker")
+      .current_dir(dir)
+      .args(["run", "--rm", "-v", "%cd%:/init", "jhnnsrs/init:latest"])
+      .output()
+      .expect("failed to execute process")
+  } else {
+    Command::new("docker")
+      .current_dir(dir)
+      .args(["run", "--rm", "-v", dir_str.as_str(), "jhnnsrs/init:latest"])
+      .output()
+      .expect("failed to execute process")
+  };
+
+  let stdout = String::from_utf8(output.stdout).unwrap();
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  println!("Finished with the following {}", stdout);
+  println!("Finished with the following {}", stderr);
+  return InitializeAnswer {
+    ok: Some(stdout),
+    error: Some(stderr),
+  };
+}
+
+pub fn directory_up(x: UpRequest) -> UpAnswer {
+  println!("Did that here Here");
+
+  let dir = canonicalize(x.dirpath.clone()).unwrap();
+  let dir_str: String = format!("{}:/init", dir.to_str().unwrap().to_string());
+  println!("Mounting on {}", dir_str);
+  let output = if cfg!(target_os = "windows") {
+    Command::new("docker-compose")
+      .current_dir(dir)
+      .args(["up", "-d"])
+      .output()
+      .expect("failed to execute process")
+  } else {
+    Command::new("docker-compose")
+      .current_dir(dir)
+      .args(["up", "-d"])
+      .output()
+      .expect("failed to execute process")
+  };
+
+  let stdout = String::from_utf8(output.stdout).unwrap();
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  println!("Finished with the following {}", stdout);
+  println!("Finished with the following {}", stderr);
+  return UpAnswer {
+    ok: Some(stdout),
+    error: Some(stderr),
+  };
+}
+
+pub fn directory_stop(x: StopRequest) -> StopAnswer {
+  println!("Did that here Here");
+
+  let dir = canonicalize(x.dirpath.clone()).unwrap();
+  let dir_str: String = format!("{}:/init", dir.to_str().unwrap().to_string());
+  println!("Mounting on {}", dir_str);
+  let output = if cfg!(target_os = "windows") {
+    Command::new("docker-compose")
+      .current_dir(dir)
+      .args(["stop"])
+      .output()
+      .expect("failed to execute process")
+  } else {
+    Command::new("docker-compose")
+      .current_dir(dir)
+      .args(["stop"])
+      .output()
+      .expect("failed to execute process")
+  };
+
+  let stdout = String::from_utf8(output.stdout).unwrap();
+  let stderr = String::from_utf8(output.stderr).unwrap();
+  println!("Finished with the following {}", stdout);
+  println!("Finished with the following {}", stderr);
+  return StopAnswer {
+    ok: Some(stdout),
+    error: Some(stderr),
+  };
 }

@@ -79,7 +79,10 @@ fn main() {
       cmd::hello_world_test,
       cmd::nana_test,
       cmd::test_docker,
-      cmd::ls_test,
+      cmd::docker_version_cmd,
+      cmd::directory_init_cmd,
+      cmd::directory_up_cmd,
+      cmd::directory_stop_cmd,
       cmd::advertise_endpoint,
       menu_toggle,
     ])

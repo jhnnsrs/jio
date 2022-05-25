@@ -24,9 +24,14 @@
     "allowlist": {
       "all": true,
       "http": {
+
         "all": true,
         "request": true,
         "scope": ["https://*", "http://**"]
+      },
+      "fs": {
+        "all": true,
+        "scope": ["$APP/*", "$DESKTOP/*"]
       }
     },
     "windows": [

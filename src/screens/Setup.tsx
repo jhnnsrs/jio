@@ -13,7 +13,9 @@ import { useCommunication } from '../communication/communication-context'
 import * as Yup from 'yup'
 import { Link, useNavigate } from 'react-router-dom'
 import { open } from '@tauri-apps/api/dialog'
-import { app } from '@tauri-apps/api'
+import { stringify } from 'yaml'
+import { useStorage } from '../storage/storage-context'
+
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
   REMOTE = 'REMOTE',
@@ -24,9 +26,14 @@ export type DockerConfig = {
   addr?: string
 }
 
-export type DockerStatus = {
+export type DockerApiStatus = {
   version: string
   memory: number
+}
+
+export type DockerInterfaceStatus = {
+  ok: string
+  error: string
 }
 
 type StepProps = {
@@ -114,7 +121,7 @@ export const AdverstisedHostsForm: React.FC<StepProps> = (props) => {
   )
 }
 
-const FileField = ({ ...props }: any) => {
+export const FileField = ({ ...props }: any) => {
   const [field, meta, helpers] = useField(props)
 
   const chooseFile = async () => {
@@ -403,13 +410,23 @@ export const Done: React.FC<StepProps> = (props) => {
 
 export const CheckDocker: React.FC<StepProps> = (props) => {
   const { call } = useCommunication()
-  const [dockerStatus, setDockerStatus] = useState<DockerStatus | null>(null)
+  const [showVersion, setShowVersion] = useState(false)
+  const [dockerApiStatus, setDockerApiStatus] =
+    useState<DockerApiStatus | null>(null)
+  const [dockerInterfaceStatus, setDockerInterfaceStatus] =
+    useState<DockerInterfaceStatus | null>(null)
   const [advertise, setAdvertise] = useState<boolean>(false)
 
   useEffect(() => {
-    call<DockerConfig, DockerStatus>('test_docker', {
+    call<DockerConfig, DockerApiStatus>('test_docker', {
       strategy: DockerConnectionStrategy.LOCAL,
-    }).then((res) => setDockerStatus(res))
+    }).then((res) => setDockerApiStatus(res))
+  }, [])
+
+  useEffect(() => {
+    call<DockerConfig, DockerInterfaceStatus>('docker_version_cmd', {
+      strategy: DockerConnectionStrategy.LOCAL,
+    }).then((res) => setDockerInterfaceStatus(res))
   }, [])
 
   return (
@@ -418,11 +435,29 @@ export const CheckDocker: React.FC<StepProps> = (props) => {
         Lets see if we can find docker..
       </div>
       <div className=''>
-        {dockerStatus ? (
+        {dockerInterfaceStatus ? (
           <div className='text-center mt-6'>
             <div className='text-7xl mb-6'>🎉</div>
-            Beautiful, we found docker on your system! <br></br>Your docker
-            version is {dockerStatus.version}
+            Beautfiul, we found docker on your system! <br></br>
+            <button
+              onClick={() => setShowVersion(!showVersion)}
+              className='border rounded border-gray-700 p-1'
+            >
+              {showVersion ? 'Hide' : 'Show'} Version{' '}
+            </button>
+            <p className='font-light text-sm mt-6'>
+              {showVersion && dockerInterfaceStatus.ok}
+            </p>
+            <div className='mt-6'>
+              {dockerApiStatus ? (
+                <>You also have access to monitor docker! Great!!!!</>
+              ) : (
+                <>
+                  It appears docker is not running locally. We can monitor the
+                  api for now
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className='text-center mt-6'>
@@ -438,9 +473,30 @@ export const CheckDocker: React.FC<StepProps> = (props) => {
 
 export const Setup: React.FC<{}> = (props) => {
   const { call } = useCommunication()
+  const { installApp } = useStorage()
   const navigate = useNavigate()
 
-  const [finalValues, setFinalValues] = React.useState({})
+  const handleSubmit = async (values: any) => {
+    if (values.appPath) {
+      let res = await call<any, { ok: string; error: string }>(
+        'directory_init_cmd',
+        {
+          dirpath: values.appPath,
+          yaml: stringify(values),
+        }
+      )
+
+      let app = {
+        name: 'arkitekt',
+        dirpath: values.appPath,
+      }
+
+      if (res.ok) {
+        installApp(app)
+        navigate('/')
+      }
+    }
+  }
 
   return (
     <FormikWizard
@@ -459,13 +515,9 @@ export const Setup: React.FC<{}> = (props) => {
         employerName: '',
         designation: '',
         totalExperience: '',
-        city: '',
+        appPath: '',
       }}
-      onSubmit={(values: any) => {
-        console.log('oisnosinosinsoinsoin')
-        setFinalValues(values)
-        navigate('/dashboard')
-      }}
+      onSubmit={handleSubmit}
       validateOnNext
       validateOnBlur
       activeStepIndex={0}
