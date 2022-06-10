@@ -10,6 +10,9 @@ import { forage } from '@tauri-apps/tauri-forage'
 import type { App } from '../storage/storage-context'
 import { useStorage } from '../storage/storage-context'
 import { app } from '@tauri-apps/api'
+import { FaktsProvider } from '../fakts/fakts-provider'
+import { FaktsGuard } from '../fakts/fakts-guard'
+import { Health } from './Health'
 
 export enum DockerConnectionStrategy {
   LOCAL = 'LOCAL',
@@ -55,18 +58,6 @@ export const Dashboard: React.FC<{ app: App }> = ({ app }) => {
   const { call } = useCommunication()
   const [dockerStatus, setDockerStatus] = useState<DockerStatus | null>(null)
   const [advertise, setAdvertise] = useState<boolean>(false)
-  const { service } = useHealth()
-
-  const [availableApps, setAvailableApps] = useState<string[]>([])
-
-  useEffect(() => {
-    forage
-      .getItem({ key: 'apps' })()
-      .then((value) => {
-        console.log(value)
-        setAvailableApps(JSON.parse(value) || [])
-      })
-  }, [])
 
   useEffect(() => {
     call<DockerConfig, DockerStatus>('test_docker', {
@@ -149,14 +140,17 @@ export const Dashboard: React.FC<{ app: App }> = ({ app }) => {
         >
           {advertise ? 'Active' : 'Not Active'}
         </button>
-        <div className='font-light mt-2'>Arkitekt Status</div>
-        <ServiceHealth service={service?.arkitekt} />
-        <div className='font-light mt-2'>Mikro Status</div>
-        <ServiceHealth service={service?.elements} />
-        <div className='font-light mt-2'>Port Status</div>
-        <ServiceHealth service={service?.port} />
-        <div className='font-light mt-2'>Fluss Status</div>
-        <ServiceHealth service={service?.fluss} />
+        <FaktsProvider
+          clientId='PsdU71PlUYeC4hP4aDf8pTdm2Hv9xYKdrxCFI5RO'
+          clientSecret='8jXSNhrH7fllN8cGjxg7y2Jl1INb22wlDSmUBepb9aRDGV3al5pfNzswS85MPEvpN5vnfrPkrIERQ6kcMHLiISr4HcYirivdtrnyMjFMlzKGvlCrwfkNJmtQgCLZmH4X'
+          store={app.name + 'fakts'}
+          endpoint={{ name: app.name, base_url: 'http://localhost:8000/f/' }}
+        >
+          <FaktsGuard>
+            <div className='font-light mt-2'>Status of App</div>
+            <Health />
+          </FaktsGuard>
+        </FaktsProvider>
       </div>
     </div>
   )

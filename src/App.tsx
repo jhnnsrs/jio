@@ -10,15 +10,13 @@ import { StorageProvider } from './storage/storage-provider'
 function App() {
   return (
     <CommunicationProvider>
-      <HealthProvider>
-        <StorageProvider>
-          <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path='/setup' element={<Setup />} />
-            <Route path='/dashboard/:id' element={<DashboardScreen />} />
-          </Routes>
-        </StorageProvider>
-      </HealthProvider>
+      <StorageProvider>
+        <Routes>
+          <Route path='/' element={<Home />} />
+          <Route path='/setup' element={<Setup />} />
+          <Route path='/dashboard/:id' element={<DashboardScreen />} />
+        </Routes>
+      </StorageProvider>
     </CommunicationProvider>
   )
 }
