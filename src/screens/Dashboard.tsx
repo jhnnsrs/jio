@@ -4,7 +4,7 @@ import { useHealth } from '../health/health-context'
 import { ResponsiveGrid } from '../layout/ResponsiveGrid'
 import { useCommunication } from '../communication/communication-context'
 import { Form, Formik } from 'formik'
-import { FileField } from './Setup'
+import { FileField } from './wizard/fields/FileField'
 import { stringify } from 'yaml'
 import { forage } from '@tauri-apps/tauri-forage'
 import type { App } from '../storage/storage-context'
@@ -110,50 +110,54 @@ export const Dashboard: React.FC<{ app: App }> = ({ app }) => {
   }, [advertise])
 
   return (
-    <div className='h-full w-full p-3'>
-      <div className='text-xl'>
-        <Link to='/'>{'< Home'}</Link>
-      </div>
-      This feels {app.name} {app.dirpath}{' '}
-      <div className='flex flex-row gap-2'>
-        <button
-          onClick={() => app_up()}
-          className='bg-green-500 border border-green-700 p-1 rounded text-white'
-        >
-          Start{' '}
-        </button>
-        <button
-          onClick={() => app_stop()}
-          className='bg-red-400 border border-red-700 p-1 rounded text-white'
-        >
-          Stop{' '}
-        </button>
-      </div>
-      <div className='font-light mt-2'>Docker Status</div>
-      {!!dockerStatus && (
-        <div className='font-light text-sm mt-2'>
-          DockerVersion: {dockerStatus.version}
-          <br />
-          Memory Usage: {dockerStatus.memory}
+    <div className='h-full w-full'>
+      <div className='text-xl flex flex-row bg-gray-800 text-white shadow-xl mb-2 p-2'>
+        <div className='flex-1'>
+          <Link to='/'>{'< Home'}</Link>
         </div>
-      )}
-      <div className='font-light mt-2'>Beacon Status</div>
-      <button
-        onClick={() => setAdvertise(!advertise)}
-        className={`border rounded border-gray-300 shadow-xl p-2 mt-2 ${
-          advertise ? 'bg-green-300' : 'bg-red-300'
-        }`}
-      >
-        {advertise ? 'Active' : 'Not Active'}
-      </button>
-      <div className='font-light mt-2'>Arkitekt Status</div>
-      <ServiceHealth service={service?.arkitekt} />
-      <div className='font-light mt-2'>Mikro Status</div>
-      <ServiceHealth service={service?.elements} />
-      <div className='font-light mt-2'>Port Status</div>
-      <ServiceHealth service={service?.port} />
-      <div className='font-light mt-2'>Fluss Status</div>
-      <ServiceHealth service={service?.fluss} />
+        <div className='flex-grow'>{app.name}</div>
+      </div>
+      <div className='flex flex-col h-full p-2'>
+        <div className='flex flex-row gap-2'>
+          <button
+            onClick={() => app_up()}
+            className='bg-green-500 border border-green-700 p-1 rounded text-white'
+          >
+            Start{' '}
+          </button>
+          <button
+            onClick={() => app_stop()}
+            className='bg-red-400 border border-red-700 p-1 rounded text-white'
+          >
+            Stop{' '}
+          </button>
+        </div>
+        <div className='font-light mt-2'>Docker Status</div>
+        {!!dockerStatus && (
+          <div className='font-light text-sm mt-2'>
+            DockerVersion: {dockerStatus.version}
+            <br />
+            Memory Usage: {dockerStatus.memory}
+          </div>
+        )}
+        <div className='font-light mt-2'>Beacon Status</div>
+        <button
+          onClick={() => setAdvertise(!advertise)}
+          className={`border rounded border-gray-300 shadow-xl p-2 mt-2 ${
+            advertise ? 'bg-green-300' : 'bg-red-300'
+          }`}
+        >
+          {advertise ? 'Active' : 'Not Active'}
+        </button>
+        <div className='font-light mt-2'>Arkitekt Status</div>
+        <ServiceHealth service={service?.arkitekt} />
+        <div className='font-light mt-2'>Mikro Status</div>
+        <ServiceHealth service={service?.elements} />
+        <div className='font-light mt-2'>Port Status</div>
+        <ServiceHealth service={service?.port} />
+        <div className='font-light mt-2'>Fluss Status</div>
+        <ServiceHealth service={service?.fluss} />
+      </div>
     </div>
   )
 }

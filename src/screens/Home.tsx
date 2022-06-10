@@ -29,7 +29,15 @@ export const Home: React.FC<{}> = (props) => {
               </div>
             </div>
           ) : (
-            <div className='text-center'>No apps found yet</div>
+            <div className='text-center'>
+              Seems like this is your first time setting things app!
+              <Link
+                to='/setup'
+                className='border rounded p-3 border-gray-400 font-light'
+              >
+                Setup new App
+              </Link>
+            </div>
           )}
         </div>
         <Link

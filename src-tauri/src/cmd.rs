@@ -215,20 +215,20 @@ pub fn directory_init(x: InitializeRequest) -> InitializeAnswer {
   println!("Did that here Here");
 
   let dir = canonicalize(x.dirpath.clone()).unwrap();
-  let config_path = dir.join("config.yaml");
+  let config_path = dir.join("setup.yaml");
   std::fs::write(config_path, x.yaml).unwrap();
-  let dir_str: String = format!("{}:/init", dir.to_str().unwrap().to_string());
+  let dir_str: String = format!("{}:/app/init", dir.to_str().unwrap().to_string());
   println!("Mounting on {}", dir_str);
   let output = if cfg!(target_os = "windows") {
     Command::new("docker")
       .current_dir(dir)
-      .args(["run", "--rm", "-v", "%cd%:/init", "jhnnsrs/init:latest"])
+      .args(["run", "--rm", "-v", dir_str.as_str(), "jhnnsrs/guss:prod"])
       .output()
       .expect("failed to execute process")
   } else {
     Command::new("docker")
       .current_dir(dir)
-      .args(["run", "--rm", "-v", dir_str.as_str(), "jhnnsrs/init:latest"])
+      .args(["run", "--rm", "-v", dir_str.as_str(), "jhnnsrs/guss:prod"])
       .output()
       .expect("failed to execute process")
   };
@@ -247,8 +247,6 @@ pub fn directory_up(x: UpRequest) -> UpAnswer {
   println!("Did that here Here");
 
   let dir = canonicalize(x.dirpath.clone()).unwrap();
-  let dir_str: String = format!("{}:/init", dir.to_str().unwrap().to_string());
-  println!("Mounting on {}", dir_str);
   let output = if cfg!(target_os = "windows") {
     Command::new("docker-compose")
       .current_dir(dir)
@@ -266,7 +264,7 @@ pub fn directory_up(x: UpRequest) -> UpAnswer {
   let stdout = String::from_utf8(output.stdout).unwrap();
   let stderr = String::from_utf8(output.stderr).unwrap();
   println!("Finished with the following {}", stdout);
-  println!("Finished with the following {}", stderr);
+  println!("Finished with the following Error {}", stderr);
   return UpAnswer {
     ok: Some(stdout),
     error: Some(stderr),

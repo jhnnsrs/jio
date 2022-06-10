@@ -4,7 +4,7 @@ import { CommunicationProvider } from './communication/communication-provider'
 import { HealthProvider } from './health/health-provider'
 import { Dashboard, DashboardScreen } from './screens/Dashboard'
 import { Home } from './screens/Home'
-import { Setup } from './screens/Setup'
+import { Setup } from './screens/wizard/Setup'
 import { StorageProvider } from './storage/storage-provider'
 
 function App() {
