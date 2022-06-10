@@ -71,10 +71,6 @@ fn main() {
         .status(404)
         .body(Vec::new())
     })
-    .menu(get_menu())
-    .on_menu_event(|event| {
-      println!("{:?}", event.menu_item_id());
-    })
     .invoke_handler(tauri::generate_handler![
       cmd::hello_world_test,
       cmd::nana_test,
