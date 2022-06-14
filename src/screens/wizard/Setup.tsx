@@ -14,6 +14,9 @@ import { AppStorage } from './forms/AppStorage'
 import { AppSelection } from './forms/AppSelection'
 import { AttentionSuperuser } from './forms/AttentionSuperuser'
 import { Done } from './forms/Done'
+import { LokUsersForm } from './forms/LokUserForm'
+import { AdverstisedHostsForm } from './forms/AdverstisedHostsForm'
+import { available_apps } from './fields/AppSelectionField'
 
 export const Setup: React.FC<{}> = (props) => {
   const { call } = useCommunication()
@@ -44,12 +47,14 @@ export const Setup: React.FC<{}> = (props) => {
     <FormikWizard
       initialValues={{
         name: 'Default',
+        hosts: ['localhost'],
+        loks: [],
         admin_username: '',
         admin_password: '',
         admin_email: '',
         attention: false,
-        apps: ['wasser'],
-        services: ['core', 'mikro', 'arkitekt'],
+        apps: available_apps,
+        services: ['herre', 'mikro', 'arkitekt'],
         appPath: '',
       }}
       onSubmit={handleSubmit}
@@ -63,7 +68,9 @@ export const Setup: React.FC<{}> = (props) => {
         {
           component: CheckDocker,
         },
-
+        {
+          component: AdverstisedHostsForm,
+        },
         {
           component: ServiceSelection,
           validationSchema: Yup.object().shape({
@@ -81,7 +88,13 @@ export const Setup: React.FC<{}> = (props) => {
         {
           component: AppSelection,
           validationSchema: Yup.object().shape({
-            apps: Yup.array(Yup.string()).required('Desired Modules Required'),
+            apps: Yup.array().of(
+              Yup.object().shape({
+                name: Yup.string().required('Username is required'),
+                client_id: Yup.string().required('Password is required'),
+                client_secret: Yup.string().required('Password is required'),
+              })
+            ),
           }),
         },
         {
@@ -100,6 +113,26 @@ export const Setup: React.FC<{}> = (props) => {
               .required('User Email is required'),
             admin_username: Yup.string().required('Username is required'),
             admin_password: Yup.string().required('Password is required'),
+          }),
+        },
+        {
+          component: LokUsersForm,
+          validationSchema: Yup.object().shape({
+            loks: Yup.array()
+              .of(
+                Yup.object().shape({
+                  username: Yup.string().required('Username is required'),
+                  password: Yup.string().required('Password is required'),
+                  email: Yup.string()
+                    .email('must be a valid email')
+                    .required('Email is required'),
+                  password_repeat: Yup.string().oneOf(
+                    [Yup.ref('password'), null],
+                    'Passwords must match'
+                  ),
+                })
+              )
+              .length(1, 'At least one User is required'),
           }),
         },
         {

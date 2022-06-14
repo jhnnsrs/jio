@@ -10,7 +10,7 @@ export type Service = {
 
 export const available_services: Service[] = [
   {
-    name: 'core',
+    name: 'herre',
     description: 'The core of the platform',
     long: 'This includes authorization, authentificaiton, config management, and more',
     image:

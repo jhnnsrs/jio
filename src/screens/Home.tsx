@@ -16,7 +16,7 @@ export const Home: React.FC<{}> = (props) => {
           {apps.length > 0 ? (
             <div className='flex flex-col items-center'>
               <div className='font-light text-center w-full'>
-                Available apps
+                Managed instances
               </div>
               <div className='grid grid-cols-2 gap-2 p-3'>
                 {apps.map((app) => (
